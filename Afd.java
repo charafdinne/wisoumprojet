@@ -1,14 +1,15 @@
 package afnTOafd;
 
 import java.util.*;
+import static java.util.Spliterators.iterator;
 
 public class Afd{
 	
-private ArrayList <Character> alphabet;
-private ArrayList <String> etats;
-private ArrayList <String> etatsFinaux;
-private String [][] fonctionTransition;
-private String etatInitial;
+public ArrayList <Character> alphabet;
+public ArrayList <String> etats;
+public ArrayList <String> etatsFinaux;
+public String [][] fonctionTransition;
+public String etatInitial;
 
 Scanner lectureClavier=new Scanner(System.in);
 //////////////////////constructeur ///////////////////////////////////////////////////////////////////
@@ -21,19 +22,19 @@ public Afd(){
 //////////////////////alphabet /////////////////////////////////////////////////////////////////////
 public void ajouterSymbole(){
 	char a;int z;
-	System.out.print("donner un symbole de type charactère:   ");
+	System.out.print("donner un symbole de type charactÃ¨re:   ");
 	a=lectureClavier.next().charAt(0);
 	if(tailleAlphabet()!=0){
 		z=alphabet.indexOf(a);
 		if(z !=-1){
-		 System.out.println("ce sympole existe deja, le  charactère est refusé");}
+		 System.out.println("ce sympole existe deja, le  charactÃ¨re est refusÃ©");}
 		
 		else{alphabet.add(new Character(a));
-		System.out.println("votre symbole ajouté est :   "+a);}
+		System.out.println("votre symbole ajoutÃ© est :   "+a);}
 			}
 		else{
 	alphabet.add(new Character(a));
-	System.out.println("votre symbole ajouté est :   "+a);}
+	System.out.println("votre symbole ajoutÃ© est :   "+a);}
 	
 }
 
@@ -45,10 +46,10 @@ public void supprimerSymbole(){
 	num=alphabet.indexOf(ch);
 	if(num >= 0){
 	alphabet.remove(num);
-	System.out.println("la suppression est faite avec succés ");
+	System.out.println("la suppression est faite avec succÃ©s ");
 	}
 	else
-	System.out.println("ce charactère n'existe pas ");
+	System.out.println("ce charactÃ¨re n'existe pas ");
 }
 
 public int tailleAlphabet(){
@@ -71,8 +72,8 @@ public void menuAlphabet(){
 }
 //////////////////////////Etats
 public void menuEtat(){
-	System.out.println("choix 1: ajouterun état:    ");
-	//System.out.println("choix 2: supprimer etat:    ");
+	System.out.println("choix 1: ajouterun Ã©tat:    ");
+	System.out.println("choix 2: supprimer etat:    ");
 	System.out.println("choix 2: afficher etat:     ");
 	System.out.println("choix 3: afficher taille etats");
 	System.out.println("choix 4: sortir de ce menu ");
@@ -81,7 +82,7 @@ public void menuEtat(){
 public void ajouterEtats(){
 	int  a;String e;
    
-	System.out.print("donnez le nombre des états que vous souhaitez utilisés \n dans ce afd, par la suite on vous généra les noms de ce états comme suit en respectant l'ordre : q0,q1,q2,q3,....tel que q0 est \n l'état initial;cette démarche simplifie l'étude par la suite:    ");
+	System.out.print("donnez le nombre des Ã©tats que vous souhaitez utilisÃ©s \n dans ce afd, par la suite on vous gÃ©nÃ©ra les noms de ce Ã©tats comme suit en respectant l'ordre : q0,q1,q2,q3,....tel que q0 est \n l'Ã©tat initial;cette dÃ©marche simplifie l'Ã©tude par la suite:    ");
 	a=lectureClavier.nextInt();
 
 	for(int i=0;i<a;i++){
@@ -94,13 +95,13 @@ public void ajouterEtats(){
 public void supprimeretat(){
     int num;
     String choix;
-    System.out.print("saisir l'état : ");
+    System.out.print("saisir l'Ã©tat : ");
     choix=lectureClavier.nextLine();
     num=alphabet.indexOf(choix);
     if(num != -1)
 	alphabet.remove(num);
     else 
-    	System.out.print("cette état n'existe pas ");	
+    	System.out.print("cette Ã©tat n'existe pas ");	
 	
 }
 
@@ -117,17 +118,29 @@ public int tailleEtats(){
  }
 ///////////////////////////////////////////fonction transition/:::::::::::::::::::::::::::::
 public void fonctionTrans(){
-	int i,j;String etatTest;char c;String f;boolean test;
+	int i,j;String etatTest;char c;String f=null;boolean test=true;
 	fonctionTransition = new String[tailleEtats()][tailleAlphabet()];
 	for(i=0;i<tailleEtats();i++){
 		etatTest=etats.get(i);
 		for (j=0;j<tailleAlphabet();j++){
 			c=alphabet.get(j);
-			System.out.print("f("+etatTest+","+c+")=");
-			do{
+			System.out.println("f("+etatTest+","+c+")=\n");
+			do{ //gestion d'exception pour ne pas stopper tout le programme par une fuate de frappe
+                            try{
+                                test = true;
 			f=lectureClavier.nextLine();
-			test=verifierEtat(f);
-			}while(test==false);
+			if(!verifierEtat(f) && !f.equals("vide")) 
+                        {
+                            test = false;
+                            throw new Exception ("Entrez un etat valide ou la chaine 'vide' ");
+                        }
+			}catch(Exception e)
+                        {
+                            System.out.println(e.getMessage());
+                        }
+                            
+                        }while(!test);
+                        
 			fonctionTransition[i][j]=f;
 		}
 	}	
@@ -152,13 +165,21 @@ private boolean verifierEtat(String f) {
 	else 
 	return true;
 }
+
+private boolean verifierEtatFinal(String f) { //fct pour verifier si on ajoutera l'etat au etat finaux aussi
+    if(verifierEtat(f) && etatsFinaux.indexOf(f) != -1) return true;
+    return false;
+}
 /////////////////////////////////////////Etats finaux
 public void saisirEtatFinaux(){
-	String f;boolean test;
-	System.out.println("Veuillez saisir le nombre d'états finaux: ");
-	int nombreEtatFinaux=lectureClavier.nextInt();
+	String f;boolean test;int nombreEtatFinaux;
+	do{
+	System.out.println("Veuillez saisir le nombre d'Ã©tats finaux: ");
+	nombreEtatFinaux=lectureClavier.nextInt();
+	}while(nombreEtatFinaux<=0);
+	
 	for(int i=0;i<nombreEtatFinaux;i++){
-		System.out.print("Veuillez saisir le"+(1+i)+" état final: ");
+		System.out.print("Veuillez saisir le"+(1+i)+" Ã©tat final: ");
 	do{
 		f=lectureClavier.nextLine();
 		test=verifierEtat(f);
@@ -183,7 +204,7 @@ public int tailleEtatsFinaux(){
 /*
 public void saisirEtatInitial(){
 	String f;boolean test;
-	System.out.print("Veuillez saisir l'état initial:   ");
+	System.out.print("Veuillez saisir l'Ã©tat initial:   ");
 	do{
 		f=lectureClavier.nextLine();
 		test=verifierEtat(f);
@@ -197,7 +218,48 @@ public String getEtatInitial(){
 }
 
 public void affichageEtatsInitial(){
-  System.out.println("l'état initial de votre AFD est : "+getEtatInitial());
+  System.out.println("l'Ã©tat initial de votre AFD est : "+getEtatInitial());
+}
+
+public Afd eliminerEtatInaccessible()
+{
+    LinkedList<String> open = new LinkedList<String>() ;
+    
+    Afd afdRes = new Afd();
+    afdRes.etatInitial = getEtatInitial();
+    afdRes.fonctionTransition = new String[etats.size()][alphabet.size()];
+    
+    for(int i = 0 ; i < alphabet.size(); i++)
+        afdRes.alphabet.add(i, alphabet.get(i));
+
+    open.add(this.getEtatInitial());
+    
+    while(!open.isEmpty())
+    {
+        String etatTmp = open.poll();
+        if(!etatTmp.equals("vide"))
+            afdRes.etats.add(etatTmp);
+        
+        if(verifierEtatFinal(etatTmp)) afdRes.etatsFinaux.add(etatTmp);
+        
+       // Iterator<Character> it = alphabet.iterator();
+        int i = 0;
+        while(i<alphabet.size())
+        {
+            
+            if(!etatTmp.equals("vide"))  
+            {
+                
+                if(!afdRes.etats.contains(fonctionTransition[this.etats.indexOf(etatTmp)][i]) && fonctionTransition[this.etats.indexOf(etatTmp)][i] != "vide")
+                    open.add(fonctionTransition[this.etats.indexOf(etatTmp)][i]);
+            
+                afdRes.fonctionTransition[afdRes.etats.indexOf(etatTmp)][i] = fonctionTransition[this.etats.indexOf(etatTmp)][i];
+            }
+            afdRes.AfficherFonctionTrans();              
+            i++;
+        }
+    }
+    return afdRes;
 }
 
 }
