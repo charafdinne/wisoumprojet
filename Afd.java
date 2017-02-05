@@ -1,6 +1,7 @@
 package afnTOafd;
 
 import java.util.*;
+import java.util.Map.Entry;
 import static java.util.Spliterators.iterator;
 
 public class Afd{
@@ -246,20 +247,182 @@ public Afd eliminerEtatInaccessible()
         int i = 0;
         while(i<alphabet.size())
         {
+            System.out.print(etats.indexOf(etatTmp) + etatTmp);
             
             if(!etatTmp.equals("vide"))  
-            {
+            {    
+                System.out.println(" " +i + " ==> " + fonctionTransition[this.etats.indexOf(etatTmp)][i]);
                 
                 if(!afdRes.etats.contains(fonctionTransition[this.etats.indexOf(etatTmp)][i]) && fonctionTransition[this.etats.indexOf(etatTmp)][i] != "vide")
                     open.add(fonctionTransition[this.etats.indexOf(etatTmp)][i]);
             
                 afdRes.fonctionTransition[afdRes.etats.indexOf(etatTmp)][i] = fonctionTransition[this.etats.indexOf(etatTmp)][i];
+                System.out.println(afdRes.fonctionTransition[this.etats.indexOf(etatTmp)][i]);
             }
             afdRes.AfficherFonctionTrans();              
             i++;
         }
     }
     return afdRes;
+}
+
+public void minimaliser()
+{
+ //   Afd afdRes = new Afd();
+    int l;
+    HashMap<String,ArrayList> marque = new HashMap<String,ArrayList>();
+    
+    for(int i = 0; i< etats.size() ; i++)
+    {
+        if(!etatsFinaux.contains(etats.get(i)))
+        {
+            ArrayList a = new ArrayList();
+            
+            for( int j = 0; j < etatsFinaux.size(); j++)
+            {
+                a.add(etatsFinaux.get(j));
+            }
+            marque.put(etats.get(i), a);
+        }
+    }
+    
+    boolean nMarque ;
+    do{
+        nMarque = false;
+        for(int i = 0; i <etats.size() - 1 ; i++)
+        {
+            l = 1;
+            while(l < etats.size())
+            {
+            if(!Marque(etats.get(i), etats.get(l),marque) && !etats.get(i).equals(etats.get(l)))
+            {
+                for(int k = 0; k < alphabet.size(); k++)
+                {
+                    if(Marque(fonctionTransition[i][k],fonctionTransition[l][k],marque))
+                    {
+                        Marquer(etats.get(i), etats.get(l),marque) ;
+                        nMarque = true;
+                        break;
+                    }
+                }
+            }    
+            ++l;
+            }
+        }
+    }while(nMarque);
+    
+    
+    ArrayList new_etats = new ArrayList();
+    
+    for(int i =0 ; i < etats.size() - 1 ;i++)
+    {
+        l = 1;
+        while(l < etats.size() )
+        {
+            if(!Marque(etats.get(i),etats.get(l),marque) && !etats.get(i).equals(etats.get(l)))
+                    {
+                        Modifier_fct_trans(etats.get(i),etats.get(l));
+                        for(int k= 0 ; k< alphabet.size() ; k++)
+                        fonctionTransition[etats.indexOf(etats.get(l))][k] = "walo";
+                        Modifier_etats(etats.get(i),etats.get(l), new_etats);
+                    }
+            l++;            
+        }
+    }
+    this.AfficherFonctionTrans();
+    
+}
+
+void Modifier_etats(String e,String f,ArrayList a)
+{
+    a = etats;
+    a.set(etats.indexOf(e), "q'" + etats.indexOf(e) + etats.indexOf(f));
+    a.remove(f);
+}
+
+void Modifier_fct_trans(String e,String f)
+{
+    for(int i = 0; i < fonctionTransition.length ; i++)
+        for(int j= 0; j < fonctionTransition[i].length ; j++)
+        {
+            
+            if (fonctionTransition[i][j].equals(e) || fonctionTransition[i][j].equals(f))
+            {
+                fonctionTransition[i][j] = "q'"+etats.indexOf(e) +etats.indexOf(f);
+            }
+        }
+}
+public boolean Marque(String e ,String f, HashMap marque)
+{
+    ArrayList a;
+    if(marque.get(e) != null)
+        {
+            a = (ArrayList) marque.get(e);
+            if(a.contains(f))
+                return true;
+        }
+    if(marque.get(f) != null)
+        {
+            a = (ArrayList) marque.get(f);
+            if(a.contains(e))
+                return true;
+        }
+    //if(!((marque.get(e) == "vide") && (marque.get(f) == "vide")))
+      //  return true;
+    
+    return false;
+}   
+    
+    
+    
+    /*Iterator it = marque.entrySet().iterator();
+    boolean lala = false;
+        while(it.hasNext())
+        {
+            Entry entree = (Entry) it.next();
+            String key = (String)entree.getKey();
+            ArrayList value = (ArrayList)entree.getValue();
+            
+            System.out.println( key + " : " +e+ " "+ value + " " + f);
+            
+            System.out.println( key + " : " +f+ " "+ value + " " + e);
+            
+            if(f == key && value.contains(e))
+            {
+                System.out.println("waaa l merd "+ f);
+                lala =  true;
+                break;
+            }
+            
+            if(e == key  && value.contains(f))
+            {
+                System.out.println("waa l merrd" + e);
+                lala = true;
+                break;
+            }
+            
+            System.out.println("salina hadi ... zid\n ");
+            //if((e == key && value.contains(f)) || (value.contains(e) && f == key))
+                //return true;
+        }
+        return lala;
+}*/
+
+
+public void Marquer(String e ,String f, HashMap marque)
+{
+    ArrayList b ;
+    if(marque.get(e) != null)
+    {   
+        b = (ArrayList) marque.get(e);
+        b.add(f);
+    }
+    else
+    {
+        b = new ArrayList();
+        b.add(f);
+        marque.put(e, f);
+    }
 }
 
 }
