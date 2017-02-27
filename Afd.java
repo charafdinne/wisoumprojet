@@ -1,4 +1,4 @@
-package afnTOafd;
+package afntoafd;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -10,12 +10,13 @@ public ArrayList <Character> alphabet;
 public ArrayList <String> etats;
 public ArrayList <String> etatsFinaux;
 public String [][] fonctionTransition;
+public String [][] newfcttrans;
 public String etatInitial;
-
+public ArrayList<String>  new_etats;
 Scanner lectureClavier=new Scanner(System.in);
 //////////////////////constructeur ///////////////////////////////////////////////////////////////////
 public Afd(){
-
+    
 	alphabet= new ArrayList <Character> ();
 	etats= new ArrayList <String> () ;
 	etatsFinaux= new ArrayList <String>() ;
@@ -144,7 +145,8 @@ public void fonctionTrans(){
                         
 			fonctionTransition[i][j]=f;
 		}
-	}	
+                
+	}
 }
 public void AfficherFonctionTrans(){
 	System.out.print("\t");
@@ -247,17 +249,17 @@ public Afd eliminerEtatInaccessible()
         int i = 0;
         while(i<alphabet.size())
         {
-            System.out.print(etats.indexOf(etatTmp) + etatTmp);
+            //System.out.print(etats.indexOf(etatTmp) + etatTmp);
             
             if(!etatTmp.equals("vide"))  
             {    
-                System.out.println(" " +i + " ==> " + fonctionTransition[this.etats.indexOf(etatTmp)][i]);
+               // System.out.println(" " +i + " ==> " + fonctionTransition[this.etats.indexOf(etatTmp)][i]);
                 
-                if(!afdRes.etats.contains(fonctionTransition[this.etats.indexOf(etatTmp)][i]) && fonctionTransition[this.etats.indexOf(etatTmp)][i] != "vide")
+                if(!afdRes.etats.contains(fonctionTransition[this.etats.indexOf(etatTmp)][i]) && fonctionTransition[this.etats.indexOf(etatTmp)][i] != "vide" && !open.contains(fonctionTransition[this.etats.indexOf(etatTmp)][i]))
                     open.add(fonctionTransition[this.etats.indexOf(etatTmp)][i]);
             
                 afdRes.fonctionTransition[afdRes.etats.indexOf(etatTmp)][i] = fonctionTransition[this.etats.indexOf(etatTmp)][i];
-                System.out.println(afdRes.fonctionTransition[this.etats.indexOf(etatTmp)][i]);
+                //System.out.println(afdRes.fonctionTransition[this.etats.indexOf(etatTmp)][i]);
             }
             afdRes.AfficherFonctionTrans();              
             i++;
@@ -266,7 +268,7 @@ public Afd eliminerEtatInaccessible()
     return afdRes;
 }
 
-public void minimaliser()
+public Afd minimaliser()
 {
  //   Afd afdRes = new Afd();
     int l;
@@ -286,6 +288,8 @@ public void minimaliser()
         }
     }
     
+    System.out.println("la marque :"+marque);
+    
     boolean nMarque ;
     do{
         nMarque = false;
@@ -296,11 +300,15 @@ public void minimaliser()
             {
             if(!Marque(etats.get(i), etats.get(l),marque) && !etats.get(i).equals(etats.get(l)))
             {
+                System.out.println(etats.get(i) + " et "+  etats.get(l));
                 for(int k = 0; k < alphabet.size(); k++)
                 {
+                    System.out.println("leur trans "+fonctionTransition[i][k]+fonctionTransition[l][k]);
                     if(Marque(fonctionTransition[i][k],fonctionTransition[l][k],marque))
                     {
+                        System.out.println("traitement "+etats.get(i) + " et "+  etats.get(l));
                         Marquer(etats.get(i), etats.get(l),marque) ;
+                        System.out.println(etats.get(i) + " et "+  etats.get(l) + "sont marqués");
                         nMarque = true;
                         break;
                     }
@@ -311,8 +319,22 @@ public void minimaliser()
         }
     }while(nMarque);
     
+    /*System.out.println("la nouvelle marque :"+marque);
+    AfficherFonctionTrans(); 
+    */
+    new_etats = new ArrayList(etats.size());
     
-    ArrayList new_etats = new ArrayList();
+    for(int i = 0 ; i < etats.size() ; i++)
+        new_etats.add(i, etats.get(i));
+    
+    newfcttrans = new String[etats.size()][alphabet.size()];
+    for(int i = 0; i < etats.size() ; i++)
+        for(int j= 0; j < alphabet.size() ; j++)
+        {
+                newfcttrans[i][j] = fonctionTransition[i][j];   
+        }
+    
+    ArrayList a = new ArrayList();
     
     for(int i =0 ; i < etats.size() - 1 ;i++)
     {
@@ -321,39 +343,71 @@ public void minimaliser()
         {
             if(!Marque(etats.get(i),etats.get(l),marque) && !etats.get(i).equals(etats.get(l)))
                     {
-                        Modifier_fct_trans(etats.get(i),etats.get(l));
-                        for(int k= 0 ; k< alphabet.size() ; k++)
-                        fonctionTransition[etats.indexOf(etats.get(l))][k] = "walo";
-                        Modifier_etats(etats.get(i),etats.get(l), new_etats);
+                        if(!(a.contains(etats.get(i)) && a.contains(etats.get(l))))
+                        {   a.add(etats.get(i));
+                            a.add(etats.get(l));
+                            //System.out.println("les etats nn marqués :"+ etats.get(i) +etats.get(l));
+                            Modifier_fct_trans(etats.get(i),etats.get(l));
+                            //for(int k= 0 ; k< alphabet.size() ; k++)
+                            //newfcttrans[etats.indexOf(etats.get(l))][k] = "walo";
+                            Modifier_etats(etats.get(i),etats.get(l));                           
+                        }
                     }
             l++;            
         }
     }
-    this.AfficherFonctionTrans();
     
+    
+    Afd wa_akhirane = new Afd();
+    wa_akhirane.alphabet = this.alphabet;
+    wa_akhirane.etatInitial = this.etatInitial;
+    wa_akhirane.etats = this.new_etats;
+    wa_akhirane.fonctionTransition = this.newfcttrans;
+    return wa_akhirane;
+    /*System.out.println("les trans par les new etats :");
+    for(int i = 0; i < new_etats.size();i++)
+            System.out.println(new_etats.get(i));
+    
+    for(int i = 0 ; i<new_etats.size();i++)
+    {
+        for(int j = 0;j<alphabet.size();j++)
+        {
+            System.out.print(newfcttrans[i][j]+"\t");
+        }
+	System.out.print("\n");
+    }*/
+    /*
+    System.out.println("affichae de new fct trans");
+    
+    for(int i = 0; i < new_etats.size() ; i++)
+        for(int j= 0; j < alphabet.size() ; j++)
+        {
+                System.out.println(fonctionTransition[i][j]);            
+        }
+    */
 }
 
-void Modifier_etats(String e,String f,ArrayList a)
+void Modifier_etats(String e,String f)
 {
-    a = etats;
-    a.set(etats.indexOf(e), "q'" + etats.indexOf(e) + etats.indexOf(f));
-    a.remove(f);
+    new_etats.set(etats.indexOf(e), "q'" + etats.indexOf(e) + etats.indexOf(f));
+    new_etats.remove(f);      
 }
 
 void Modifier_fct_trans(String e,String f)
 {
-    for(int i = 0; i < fonctionTransition.length ; i++)
-        for(int j= 0; j < fonctionTransition[i].length ; j++)
-        {
-            
+    for(int i = 0; i < etats.size() ; i++)
+        for(int j= 0; j < alphabet.size() ; j++)
+        {            
             if (fonctionTransition[i][j].equals(e) || fonctionTransition[i][j].equals(f))
             {
-                fonctionTransition[i][j] = "q'"+etats.indexOf(e) +etats.indexOf(f);
+                newfcttrans[i][j] = "q'"+etats.indexOf(e) +etats.indexOf(f);
             }
-        }
+        } 
 }
 public boolean Marque(String e ,String f, HashMap marque)
 {
+    if((!e.equals("vide") && f.equals("vide")) || (e.equals("vide") && !f.equals("vide")))
+        return true;
     ArrayList a;
     if(marque.get(e) != null)
         {
@@ -367,8 +421,6 @@ public boolean Marque(String e ,String f, HashMap marque)
             if(a.contains(e))
                 return true;
         }
-    //if(!((marque.get(e) == "vide") && (marque.get(f) == "vide")))
-      //  return true;
     
     return false;
 }   
@@ -416,6 +468,7 @@ public void Marquer(String e ,String f, HashMap marque)
     {   
         b = (ArrayList) marque.get(e);
         b.add(f);
+        marque.put(e,b);
     }
     else
     {
